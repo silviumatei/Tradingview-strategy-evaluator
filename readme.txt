@@ -1,1 +1,2 @@
-
+Have you ever tried to test strategies on TV on sub-minute timeframes? Why would you want to look at sub-minute? Because if the strategy works, you actually have more opportunities to make or lose money. 
+The main requirement one needs to keep in mind before trying to do this is that a paid Tradingview account is needed in order to access sub-minute timeframes. Maybe that will change in the future.
