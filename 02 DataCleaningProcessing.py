@@ -25,7 +25,7 @@ with gzip.open(filename, 'rt') as file:
     data = data.drop_duplicates(subset=['ticker', 'timeframe', 'strategy', 'entry_price', 'entry_time', 
                 'exit_price', 'exit_time'], keep='last', inplace=False)#, ignore_index=True)
     #data['profit%'] = np.where(data['entry_signal'] == 'BUY', (((((10000 * 0.992) / data['entry_price']) * data['exit_price']) - (10000 * 0.996)) / 100), (((10000 * 0.996) - (((10000 * 0.992) / data['entry_price']) * data['exit_price'])) / 100)) #I am using 0.992 since the second trasaction uses the amount after the first commission and a second .004 commission is added.
-	data['profit%'] = np.where(data['entry_signal'] == 'BUY', ((data['exit_price'] - data['entry_price']) * 10000 - 8) / 10000, ((data['entry_price'] - data['exit_price']) * 10000 - 8) / 10000) #made it simpler here: Binance is charging me 8 USD for each 10k transaction
+    data['profit%'] = np.where(data['entry_signal'] == 'BUY', ((data['exit_price'] - data['entry_price']) * 10000 - 8) / 10000, ((data['entry_price'] - data['exit_price']) * 10000 - 8) / 10000) #made it simpler here: Binance is charging me 8 USD for each 10k transaction
 
 #Computing the cummulative profit (includes the trade direction: BUY or SELL). This basically adds up the profit after each trade.
 data['CumulativeProfit%'] = data.groupby(['ticker', 'strategy', 'timeframe', 'entry_signal'])['profit%'].cumsum() / 100
@@ -56,7 +56,7 @@ file = 'StrategyTestingResults v2 for Analysis.csv.gz'
 data.to_csv(file, index=False, compression='gzip')
 
 #############################################OverallStrategy Assessment#####################################
-######Summing up the profit for each tuple ticker, strategy and timeframe in order to compare them. 
+######Summing up the profit for each tuple 'ticker, strategy and timeframe' in order to compare them. 
 totalprofit2 = pd.DataFrame()
 totalprofit2 = data.groupby(['ticker', 'strategy', 'timeframe'])['profit%'].sum().reset_index()
 totalprofit2.columns = ['ticker', 'strategy', 'timeframe', 'TotalProfit%']
