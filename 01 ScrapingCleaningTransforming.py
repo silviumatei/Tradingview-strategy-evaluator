@@ -1,37 +1,25 @@
 #Import the required libraries
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
-from configparser import ConfigParser
-from selenium.webdriver.common.by import By
-from selenium.webdriver import DesiredCapabilities 
-from selenium.webdriver.support.select import Select
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import *
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import StaleElementReferenceException
-
-import pandas as pd
-import numpy as np
 import os
-import pathlib
-
 import time
-from time import sleep
-from datetime import timedelta, datetime
-from dateutil import parser
+import sys
+import pathlib
 import glob
 import stat
-from functools import wraps
-
-from tqdm import tqdm_notebook
-from tqdm import tqdm
-import sys
 import gzip
 import shutil
+import pandas as pd
+from datetime import datetime
+from functools import wraps
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.exceptions import StaleElementReferenceException, WebDriverException
+from webdriver_manager.chrome import ChromeDriverManager
+from tqdm import tqdm
 
 #Set working directory
 os.chdir(r'D:\TD\FMF\Strategies')
@@ -76,7 +64,7 @@ for _ in range(2):
 
 wait = WebDriverWait(driver, 5)
 
-##########################################	PRELIMINARY FUNCTIONS
+#########################################	PRELIMINARY FUNCTIONS
 
 ##########################################  REPEAT FUNCTION
 def retry(max_tries=3, delay_seconds=2):
@@ -127,7 +115,7 @@ rotation = getTheRotationNumber(l1)
 
 driver.find_element(By.XPATH, l1[rotation]).click()
 
-#print(rotation) - to check if it is not None
+#print(rotation) - to check that it is not None
 
 ############################### SPECIFY THE VERSIONS OF THE LISTS TO USE FOR THE CHANGING ELEMENTS
 #These are the variants for the strategy selector
@@ -154,8 +142,8 @@ l4 = ['//*[@id="bottom-area"]/div[3]/div/div[1]/div[1]/div[1]/div/button[3]',
       '//*[@id="bottom-area"]/div[5]/div/div[1]/div[1]/div[1]/div/button[3]',
      '//*[@id="bottom-area"]/div[6]/div/div[1]/div[1]/div[1]/div/button[3]']
 
-##############################################################################################################	 
-#Define the functions
+#################################################	Define the functions 
+#files and temp dirs
 fncsv = 'StrategyTestingResults v2.csv.gz'
 tempdir = pathlib.Path(r'D:\TD\FMF\Strategies\temp')
 tdir = r'D:\TD\FMF\Strategies\temp'
@@ -213,7 +201,7 @@ def processFile(filepath, results, t, timeframe, strategy):
         print('There is an error when processing the data')
     return results
 
-#function to send the characters for each PAIR to the driver
+#function to send the characters for each PAIR to the browser
 def send_keys_with_retry(element, text):
     max_retries = 3
     retries = 0
@@ -237,9 +225,9 @@ def extract(t, tm, sl):
     #ticker/PAIR block - looping each when executing 
     ticker = driver.find_element(By.XPATH, '//*[@id="header-toolbar-symbol-search"]')
     
-    #print(t) - FOR CHECKING
+    #print(ticker) - FOR CHECKING
     
-	#INPUT THE TICKER INTO TV
+    #send the ticker to the browser
     with webdriver.common.action_chains.ActionChains(driver) as action:
         action.move_to_element(ticker).click()
         for i in t:
@@ -267,7 +255,7 @@ def extract(t, tm, sl):
             driver.execute_script("$(arguments[0]).click();", stl)
             strategy = driver.find_element(By.XPATH, l2a[rotation]).text
 			
-			#Skip if no trades
+	    #Skip if no trades
             NoTrades = ''
             try:
                 try:
@@ -343,8 +331,7 @@ def transform(results):
         r['exit_signal'] = r['exit_signal'].shift(-1)
         res = r.iloc[::2].copy()
 
-        ########################################################################################################################################
-            
+        ####################################################################################################################################
         # Use the function to transform the DataFrame
 
         res = res.drop_duplicates(subset=['ticker', 'timeframe', 'strategy', 'entry_price', 'entry_time', 
@@ -356,7 +343,7 @@ def transform(results):
     
     return res
 
-#Function to save the transform data / append it to the existing file
+#Function to save the transformed data & append it to the existing file
 def savecsv(df, file):
     os.chdir(r'D:\TD\FMF\Strategies')
     if os.path.isfile(file):
@@ -411,8 +398,7 @@ with tqdm(total=len(ticker2), file=sys.stdout) as pbar:
 finalOutput = transform(collectedOutput)
 savecsv(finalOutput, fncsv)
 
-
-###############################resave the file after cleaning empty rows and duplicates 
+###############################	Resave the file after cleaning empty rows and duplicates 
 #This is to deal with the complications added by saving to gzip instead of simple csv
 def cleanSave(file):
     tempOutputFile = 'cleaned_' + file  # New file to save cleaned data
